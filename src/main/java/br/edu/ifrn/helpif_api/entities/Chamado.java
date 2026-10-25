@@ -26,9 +26,6 @@ public class Chamado {
     @Column(length = 50)
     private String patrimonio;
 
-    @Column(length = 50)
-    private String bloco;
-
     @Column(nullable = false)
     private String local;
 
