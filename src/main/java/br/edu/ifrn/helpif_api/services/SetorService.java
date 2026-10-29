@@ -4,6 +4,7 @@ import br.edu.ifrn.helpif_api.dtos.SetorRequestDTO;
 import br.edu.ifrn.helpif_api.dtos.SetorResponseDTO;
 import br.edu.ifrn.helpif_api.entities.Setor;
 import br.edu.ifrn.helpif_api.repositories.SetorRepository;
+import br.edu.ifrn.helpif_api.repositories.ChamadoRepository;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,9 +17,13 @@ import org.springframework.web.server.ResponseStatusException;
 public class SetorService {
 
     private final SetorRepository repository;
+    private final ChamadoRepository chamadoRepository;
 
-    public SetorService(SetorRepository repository) {
+    public SetorService(
+            SetorRepository repository,
+            ChamadoRepository chamadoRepository) {
         this.repository = repository;
+        this.chamadoRepository = chamadoRepository;
     }
 
     @Transactional
@@ -71,9 +76,18 @@ public class SetorService {
         return new SetorResponseDTO(repository.save(setor));
     }
 
+
     @Transactional
     public void excluir(Long id) {
         Setor setor = encontrarSetor(id);
+
+        if (chamadoRepository.existsByCategoria_Setor_Id(id)) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Não é possível excluir um setor com chamados vinculados"
+            );
+        }
+
         repository.delete(setor);
         repository.flush();
     }
