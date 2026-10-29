@@ -48,6 +48,24 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(RegraNegocioException.class)
+    public ResponseEntity<ErroResponse> tratarRegraNegocio(
+            RegraNegocioException exception, HttpServletRequest request) {
+        return criarResposta(HttpStatus.CONFLICT, exception.getMessage(), request);
+    }
+
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+    public ResponseEntity<ErroResponse> tratarIntegridade(HttpServletRequest request) {
+        return criarResposta(HttpStatus.CONFLICT,
+                "Operação viola unicidade ou vínculo entre registros", request);
+    }
+
+    @ExceptionHandler({org.springframework.http.converter.HttpMessageNotReadableException.class,
+            org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class})
+    public ResponseEntity<ErroResponse> tratarFormato(HttpServletRequest request) {
+        return criarResposta(HttpStatus.BAD_REQUEST, "Dados da requisição inválidos", request);
+    }
+
     private ResponseEntity<ErroResponse> criarResposta(
             org.springframework.http.HttpStatusCode status,
             String mensagem,
