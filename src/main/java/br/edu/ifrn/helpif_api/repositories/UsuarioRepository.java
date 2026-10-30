@@ -14,7 +14,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
     @Query("""
             SELECT u FROM Usuario u
-            WHERE (:nome IS NULL OR LOWER(u.nome) LIKE LOWER(CONCAT('%', :nome, '%')))
+            WHERE (CAST(:nome AS String) IS NULL OR LOWER(u.nome) LIKE LOWER(CONCAT('%', CAST(:nome AS String), '%')))
               AND (:tipo IS NULL OR u.tipo = :tipo)
               AND (:setorId IS NULL OR u.setor.id = :setorId)
             """)
