@@ -1,0 +1,181 @@
+# HelpIF API - coleção completa de requisições
+# Execute cada bloco separadamente (por exemplo, com REST Client no VS Code).
+# 1. Inicie com docker compose up.
+# 2. Após cada POST de cadastro, copie o id da resposta para a variável indicada.
+# 3. As variáveis de novos registros começam em 0 para evitar alterar os dados iniciais.
+# 4. Ao repetir a coleção, use outra sigla e outro email nos cadastros.
+# 5. Execute as exclusões somente ao final, após testar os cadastros.
+# Os exemplos de chamados usam a categoria Computadores e o técnico COTIC da V2.
+@baseUrl = http://localhost:8080
+@setorId = 0
+@categoriaId = 0
+@usuarioId = 0
+@chamadoId = 0
+@chamadoCancelarId = 0
+@categoriaChamadoId = 1
+@setorChamadoId = 1
+@tecnicoId = 3
+
+### 01 - Criar setor (201). Copie o id para setorId.
+POST {{baseUrl}}/setores
+Content-Type: application/json
+
+{"nome": "Setor de Demonstração", "sigla": "DEMO"}
+
+### 02 - Listar setores com filtro, paginação e ordenação (200)
+GET {{baseUrl}}/setores?nome=demonstração&page=0&size=10&sort=sigla,desc
+
+### 03 - Buscar setor (200)
+GET {{baseUrl}}/setores/{{setorId}}
+
+### 04 - Atualizar setor (200)
+PUT {{baseUrl}}/setores/{{setorId}}
+Content-Type: application/json
+
+{"nome": "Setor de Demonstração Atualizado", "sigla": "DEMO"}
+
+### 05 - Criar categoria (201). Copie o id para categoriaId.
+POST {{baseUrl}}/categorias
+Content-Type: application/json
+
+{"nome": "Equipamentos de demonstração", "descricao": "Categoria para testar o cadastro", "setorId": {{setorId}}}
+
+### 06 - Listar categorias com filtros combinados (200)
+GET {{baseUrl}}/categorias?nome=demonstração&setorId={{setorId}}&page=0&size=10&sort=nome,asc
+
+### 07 - Buscar categoria (200)
+GET {{baseUrl}}/categorias/{{categoriaId}}
+
+### 08 - Atualizar categoria (200)
+PUT {{baseUrl}}/categorias/{{categoriaId}}
+Content-Type: application/json
+
+{"nome": "Equipamentos de demonstração atualizados", "descricao": "Descrição atualizada", "setorId": {{setorId}}}
+
+### 09 - Listar categorias de um setor (200)
+GET {{baseUrl}}/setores/{{setorId}}/categorias?page=0&size=10&sort=nome,desc
+
+### 10 - Criar solicitante (201). Copie o id para usuarioId.
+POST {{baseUrl}}/usuarios
+Content-Type: application/json
+
+{"nome": "Maria Demonstração", "email": "maria.demo@example.com", "matricula": "20260005", "tipo": "SOLICITANTE"}
+
+### 11 - Listar usuários com filtro (200)
+GET {{baseUrl}}/usuarios?nome=maria&tipo=SOLICITANTE&page=0&size=10&sort=nome,asc
+
+### 12 - Listar técnicos por setor (200)
+GET {{baseUrl}}/usuarios?tipo=TECNICO&setorId={{setorChamadoId}}&page=0&size=10
+
+### 13 - Buscar usuário (200)
+GET {{baseUrl}}/usuarios/{{usuarioId}}
+
+### 14 - Atualizar usuário (200)
+PUT {{baseUrl}}/usuarios/{{usuarioId}}
+Content-Type: application/json
+
+{"nome": "Maria Demonstração Atualizada", "email": "maria.demo@example.com", "matricula": "20260005", "tipo": "SOLICITANTE"}
+
+### 15 - Email duplicado (409). Execute após o cadastro acima.
+POST {{baseUrl}}/usuarios
+Content-Type: application/json
+
+{"nome": "Outro usuário", "email": "maria.demo@example.com", "matricula": "20260006", "tipo": "SOLICITANTE"}
+
+### 16 - Abrir chamado (201). Copie o id para chamadoId.
+# Sem prioridade informada, o sistema define MEDIA.
+POST {{baseUrl}}/chamados
+Content-Type: application/json
+
+{"titulo": "Projetor sem imagem", "descricao": "O projetor liga, mas não exibe a tela.", "local": "Laboratório 1", "solicitanteId": {{usuarioId}}, "categoriaId": {{categoriaChamadoId}}}
+
+### 17 - Listar chamados com filtros combinados (200)
+GET {{baseUrl}}/chamados?status=ABERTO&prioridade=MEDIA&setorId={{setorChamadoId}}&categoriaId={{categoriaChamadoId}}&solicitanteId={{usuarioId}}&page=0&size=10&sort=dataAbertura,desc
+
+### 18 - Filtrar por período de abertura (200). Ajuste o período conforme o dia do teste.
+GET {{baseUrl}}/chamados?dataInicio=2026-10-01T00:00:00&dataFim=2026-10-31T23:59:59&page=0&size=10
+
+### 19 - Detalhar chamado e histórico (200)
+GET {{baseUrl}}/chamados/{{chamadoId}}
+
+### 20 - Chamados abertos pelo solicitante (200)
+GET {{baseUrl}}/usuarios/{{usuarioId}}/chamados?status=ABERTO&page=0&size=10
+
+### 21 - Técnico assume chamado aberto (200)
+PATCH {{baseUrl}}/chamados/{{chamadoId}}/assumir
+Content-Type: application/json
+
+{"tecnicoId": {{tecnicoId}}}
+
+### 22 - Chamados atribuídos ao técnico (200)
+GET {{baseUrl}}/usuarios/{{tecnicoId}}/chamados?status=EM_ATENDIMENTO&page=0&size=10
+
+### 23 - Listar chamados por técnico (200)
+GET {{baseUrl}}/chamados?tecnicoId={{tecnicoId}}&status=EM_ATENDIMENTO&page=0&size=10
+
+### 24 - Registrar interação pelo técnico atribuído (201)
+POST {{baseUrl}}/chamados/{{chamadoId}}/interacoes
+Content-Type: application/json
+
+{"autorId": {{tecnicoId}}, "texto": "Realizando testes no cabo HDMI."}
+
+### 25 - Registrar interação pelo solicitante (201)
+POST {{baseUrl}}/chamados/{{chamadoId}}/interacoes
+Content-Type: application/json
+
+{"autorId": {{usuarioId}}, "texto": "O problema começou durante a aula."}
+
+### 26 - Solução vazia (400). Execute enquanto estiver EM_ATENDIMENTO.
+PATCH {{baseUrl}}/chamados/{{chamadoId}}/resolver
+Content-Type: application/json
+
+{"tecnicoId": {{tecnicoId}}, "solucao": " "}
+
+### 27 - Resolver chamado (200)
+PATCH {{baseUrl}}/chamados/{{chamadoId}}/resolver
+Content-Type: application/json
+
+{"tecnicoId": {{tecnicoId}}, "solucao": "Cabo HDMI substituído e imagem normalizada."}
+
+### 28 - Nova interação em chamado resolvido (409)
+POST {{baseUrl}}/chamados/{{chamadoId}}/interacoes
+Content-Type: application/json
+
+{"autorId": {{usuarioId}}, "texto": "Tentativa após encerramento."}
+
+### 29 - Detalhar chamado resolvido com as interações (200)
+GET {{baseUrl}}/chamados/{{chamadoId}}
+
+### 30 - Abrir OUTRO chamado para testar cancelamento (201).
+# Copie o id retornado para chamadoCancelarId.
+POST {{baseUrl}}/chamados
+Content-Type: application/json
+
+{"titulo": "Problema de conexão", "descricao": "Computador sem acesso à internet.", "local": "Laboratório 2", "prioridade": "ALTA", "solicitanteId": {{usuarioId}}, "categoriaId": {{categoriaChamadoId}}}
+
+### 31 - Cancelar enquanto ABERTO, pelo próprio solicitante (200)
+PATCH {{baseUrl}}/chamados/{{chamadoCancelarId}}/cancelar
+Content-Type: application/json
+
+{"solicitanteId": {{usuarioId}}}
+
+### 32 - Excluir categoria de demonstração sem chamados (204)
+DELETE {{baseUrl}}/categorias/{{categoriaId}}
+
+### 33 - Excluir setor de demonstração após excluir a categoria (204)
+DELETE {{baseUrl}}/setores/{{setorId}}
+
+### 34 - Excluir categoria vinculada aos chamados criados (409)
+DELETE {{baseUrl}}/categorias/{{categoriaChamadoId}}
+
+### 35 - Excluir setor vinculado aos chamados criados (409)
+DELETE {{baseUrl}}/setores/{{setorChamadoId}}
+
+### 36 - Recurso inexistente (404)
+GET {{baseUrl}}/chamados/999999999
+
+### 37 - Dados obrigatórios ausentes (400)
+POST {{baseUrl}}/setores
+Content-Type: application/json
+
+{"nome": "", "sigla": ""}

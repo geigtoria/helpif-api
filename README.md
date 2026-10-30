@@ -144,7 +144,7 @@ As migrations ficam em `src/main/resources/db/migration`.
 | PATCH | `/chamados/{id}/cancelar` | Cancelar chamado aberto |
 | POST | `/chamados/{id}/interacoes` | Registrar interação |
 
-As listagens são paginadas, com `page` começando em zero e `size` padrão de 10, limitado a 50. A resposta contém `content`, `number`, `size`, `totalElements` e `totalPages`. Em chamados, a ordenação padrão é por data de abertura decrescente.
+As listagens são paginadas, com `page` começando em zero e `size` padrão de 10, limitado a 50. A resposta contém `content`, `number`, `size`, `totalElements` e `totalPages`. Use `sort=campo,asc` ou `sort=campo,desc` para ordenar as listagens, inclusive setores. Em chamados, a ordenação padrão é por data de abertura decrescente.
 
 | Listagem | Filtros opcionais |
 | --- | --- |
@@ -157,6 +157,8 @@ As listagens são paginadas, com `page` começando em zero e `size` padrão de 1
 Filtros de nome ignoram diferenças entre maiúsculas e minúsculas. Os filtros podem ser combinados. As datas usam o formato ISO com horário, por exemplo `2026-10-30T08:00:00`, com limites inclusivos.
 
 ## Exemplos de requisição
+
+A coleção completa está em [`requisicoes.http`](requisicoes.http), com todos os endpoints, fluxos de atendimento e cancelamento e exemplos de erros. Execute os blocos separadamente com um cliente compatível com arquivos `.http`, como a extensão REST Client do VS Code. Após cada cadastro ou abertura de chamado, copie o id retornado para a variável indicada no início do arquivo. As variáveis de novos registros começam em zero para evitar alterações acidentais nos dados iniciais.
 
 Os exemplos abaixo usam os dados de uma instalação nova: solicitante Ana com id 1, técnico Carlos da COTIC com id 3 e categoria Computadores com id 1. Copie o id retornado ao abrir o chamado e substitua `{id}` nos próximos exemplos.
 
