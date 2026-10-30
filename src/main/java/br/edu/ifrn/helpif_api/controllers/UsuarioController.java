@@ -1,5 +1,9 @@
 package br.edu.ifrn.helpif_api.controllers;
 
+import br.edu.ifrn.helpif_api.dtos.ChamadoResponseDTO;
+import br.edu.ifrn.helpif_api.entities.StatusChamado;
+import br.edu.ifrn.helpif_api.services.ChamadoService;
+import org.springframework.data.domain.Sort;
 import br.edu.ifrn.helpif_api.dtos.UsuarioRequestDTO;
 import br.edu.ifrn.helpif_api.dtos.UsuarioResponseDTO;
 import br.edu.ifrn.helpif_api.entities.TipoUsuario;
@@ -16,9 +20,12 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/usuarios")
 public class UsuarioController {
     private final UsuarioService service;
+    private final ChamadoService chamadoService;
 
-    public UsuarioController(UsuarioService service) {
+    public UsuarioController(UsuarioService service,
+            ChamadoService chamadoService) {
         this.service = service;
+        this.chamadoService = chamadoService;
     }
 
     @PostMapping
@@ -38,6 +45,15 @@ public class UsuarioController {
     @GetMapping("/{id}")
     public ResponseEntity<UsuarioResponseDTO> buscarPorId(@PathVariable Long id) {
         return ResponseEntity.ok(service.buscarPorId(id));
+    }
+
+    @GetMapping("/{id}/chamados")
+    public ResponseEntity<Page<ChamadoResponseDTO>> listarChamados(
+            @PathVariable Long id,
+            @RequestParam(required = false) StatusChamado status,
+            @PageableDefault(size = 10, sort = "dataAbertura",
+                    direction = Sort.Direction.DESC) Pageable pageable) {
+        return ResponseEntity.ok(chamadoService.listarPorUsuario(id, status, pageable));
     }
 
     @PutMapping("/{id}")
