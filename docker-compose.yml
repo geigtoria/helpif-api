@@ -1,21 +1,34 @@
-
 services:
+  api:
+    build:
+      context: .
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-helpif}
+      DB_USERNAME: ${DB_USERNAME:-helpif}
+      DB_PASSWORD: ${DB_PASSWORD:-helpif_dev}
+    ports:
+      - "${API_PORT:-8080}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   postgres:
     image: postgres:16
     container_name: helpif-postgres
     environment:
-      POSTGRES_DB: helpif
-      POSTGRES_USER: helpif
-      POSTGRES_PASSWORD: helpif_dev
+      POSTGRES_DB: ${DB_NAME:-helpif}
+      POSTGRES_USER: ${DB_USERNAME:-helpif}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-helpif_dev}
     ports:
-      - "5432:5432"
+      - "${DB_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U helpif -d helpif"]
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
       interval: 5s
       timeout: 5s
       retries: 10
+      start_period: 10s
 
 volumes:
   postgres_data:
