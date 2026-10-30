@@ -12,25 +12,23 @@ import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@RestController
+@RequestMapping("/setores")
+public class SetorController {
 
-    @RestController
-    @RequestMapping("/setores")
-    public class SetorController {
+    private final SetorService service;
+    private final CategoriaService categoriaService;
 
-        private final SetorService service;
-        private final CategoriaService categoriaService;
-
-        public SetorController(
-                SetorService service,
-                CategoriaService categoriaService) {
-            this.service = service;
-            this.categoriaService = categoriaService;
-        }
+    public SetorController(
+            SetorService service,
+            CategoriaService categoriaService) {
+        this.service = service;
+        this.categoriaService = categoriaService;
+    }
 
     @PostMapping
     public ResponseEntity<SetorResponseDTO> criar(
@@ -44,14 +42,7 @@ import org.springframework.web.bind.annotation.*;
     @GetMapping
     public ResponseEntity<Page<SetorResponseDTO>> listar(
             @RequestParam(required = false) String nome,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
-
-        Pageable pageable = PageRequest.of(
-                page,
-                Math.min(size, 50),
-                Sort.by("nome").ascending()
-        );
+            @PageableDefault(size = 10, sort = "nome") Pageable pageable) {
 
         return ResponseEntity.ok(service.listar(nome, pageable));
     }
