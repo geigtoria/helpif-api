@@ -3,7 +3,10 @@ package br.edu.ifrn.helpif_api.controllers;
 import br.edu.ifrn.helpif_api.dtos.SetorRequestDTO;
 import br.edu.ifrn.helpif_api.dtos.SetorResponseDTO;
 import br.edu.ifrn.helpif_api.services.SetorService;
+import br.edu.ifrn.helpif_api.services.CategoriaService;
+import br.edu.ifrn.helpif_api.dtos.CategoriaResponseDTO;
 
+import org.springframework.data.web.PageableDefault;
 import jakarta.validation.Valid;
 
 import org.springframework.data.domain.Page;
@@ -14,15 +17,20 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@RestController
-@RequestMapping("/setores")
-public class SetorController {
 
-    private final SetorService service;
+    @RestController
+    @RequestMapping("/setores")
+    public class SetorController {
 
-    public SetorController(SetorService service) {
-        this.service = service;
-    }
+        private final SetorService service;
+        private final CategoriaService categoriaService;
+
+        public SetorController(
+                SetorService service,
+                CategoriaService categoriaService) {
+            this.service = service;
+            this.categoriaService = categoriaService;
+        }
 
     @PostMapping
     public ResponseEntity<SetorResponseDTO> criar(
@@ -68,5 +76,21 @@ public class SetorController {
 
         service.excluir(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/categorias")
+    public ResponseEntity<Page<CategoriaResponseDTO>> listarCategorias(
+            @PathVariable Long id,
+            @PageableDefault(size = 10, sort = "nome") Pageable pageable) {
+
+        Pageable limitado = PageRequest.of(
+                pageable.getPageNumber(),
+                Math.min(pageable.getPageSize(), 50),
+                pageable.getSort()
+        );
+
+        return ResponseEntity.ok(
+                categoriaService.listarPorSetor(id, limitado)
+        );
     }
 }
